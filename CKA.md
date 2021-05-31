@@ -64,6 +64,31 @@ kubectl create -f pod-definition.yml
 
 
 
+### multiple Pods
+
+```yaml
+# pod-definition.yml
+# string value
+apiVersion: v1
+kind: Pod
+# key-value, dictionary, 
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+    type: front-end
+spec:
+  containers: # "-" means list/array
+    - name: nginx-container # 1st item in list 
+      image: nginx 
+    - name: log-agent				# 2st item in list 
+      image: log-agent:v1
+
+
+```
+
+
+
 **명령형으로 pod 만들기**
 
 ~~~
@@ -85,19 +110,19 @@ Container name : redis
 
 image name : redis 
 
-```
+```yaml
 # kubectl patch pod <podname> -p '{"spec":{"template":{"spec":{"terminationGracePeriodSeconds":31}}}}'
 kubectl patch pod redis -p '{"spec":{"template":{"spec":{"terminationGracePeriodSeconds":31}}}}'
 ```
 
-```
+```yaml
 # kubectl set image pod/<pod-name> <container-name>=<image-name>
 kubectl set image pod/redis redis=redis
 ```
 
 또는
 
-~~~
+~~~yaml
 # 1. update the pod-definition file and use kubectl apply command 
 # 2. use kubectl edit pod redis command 
 
@@ -189,14 +214,14 @@ by using label. replicaset knows which pod to monitor.
 
 Case 1.
 
-```
+```yaml
 # change yaml file
 kubectl replace -f rc.yml
 ```
 
 Case 2.
 
-```
+```yaml
 kubectl scale --replicas=6 rc.yml
 
 # or 
@@ -207,14 +232,14 @@ kubectl scale --replicas=6 replicaset myapp-replicaset
 
 
 
-```
+```yaml
 kubectl set image replicaSet/new-replica-set <container-name>=<image-name>
 kubectl set image replicaSet/new-replica-set busybox-container=busybox
 ```
 
 또는 
 
-~~~
+~~~yaml
 kubectl edit replicaset new-replica-set
 ~~~
 
@@ -1212,6 +1237,155 @@ spec:
       args:["10"]
 
 ~~~
+
+
+
+### ENV variables in K8S
+
+```yaml
+# pod-definition.yml
+# string value
+apiVersion: v1
+kind: Pod
+# key-value, dictionary, 
+metadata:
+  name: myapp-pod
+spec:
+  containers: # list/array
+    - name: nginx-container # 1st item in list 
+      image: nginx 
+      
+      env:	# array, key-value
+        -  name: APP_COLOR
+        	 value: blue
+```
+
+
+
+1. Plain key-value
+
+~~~yaml
+      env:	# array, key-value
+        -  name: APP_COLOR
+        	 value: blue
+~~~
+
+### ConfigMap
+
+```yaml
+      env:	# array, key-value
+        -  name: APP_COLOR
+        	 valueFrom: 
+        	     configMapKeyRef:
+```
+
+
+
+- pod 밖으로 빼서 관리 
+- pod 생성시에 inject 한다. 
+
+```yaml
+# 명령형 선언 
+kubectl create configmap <config-name> --from-literal=<key>=<value>
+kubectl create configmap app-config --from-literal=APP_COLOR=blue
+kubectl create configmap webapp-config-map --from-literal=APP_COLOR=darkblue
+
+=
+
+# 명령형 선언 <파일에 저장>
+kubectl create configmap app-config --from-file=app_config.properties
+
+
+# declarative 
+kubectl create -f config-map.yaml
+```
+
+
+
+- create Config map 
+
+```yaml
+# config-map.yaml
+
+apiVersion: v1
+kind: ConfigMap
+# key-value, dictionary, 
+metadata:
+  name: app-config 
+data:
+  APP_COLOR: blue
+  APP_MODE: prod
+
+```
+
+
+
+- inject ConfigMap in Pods
+
+```yaml
+# pod-definition.yml
+apiVersion: v1
+kind: Pod
+# key-value, dictionary, 
+metadata:
+  name: myapp-pod
+spec:
+  containers: # list/array
+    - name: nginx-container # 1st item in list 
+      image: nginx 
+      
+      envFrom:	# array, key-value
+        -  configMapRef:
+        	   name: app-config
+```
+
+
+
+### Secrets 
+
+```yaml
+      env:	# array, key-value
+        -  name: APP_COLOR
+        	 valueFrom:
+        	     secretKeyRef:
+```
+
+
+
+* Tip : 현재 떠있는 pod 의 yaml 파일 가져오기 
+
+~~~yaml
+kubectl get pod <pod-name> - o yaml > pod.yaml
+~~~
+
+
+
+- create Secret 
+- inject in pod
+
+```yaml
+# 명령형 선언
+kubectl create secret generic app-secret --from-literal=DB_HOST=mysql
+kubectl create secret generic <secret-name> --from-literal=<key>=<value>
+kubectl create secret generic <secret-name> --from-file=<path-to-file>
+
+# base64 utility 를 사용하여 암호화 진행 
+echo -n 'mysql' | base64 
+
+kubectl get secret app-secret -o yaml
+
+# envFrom 정보 체크
+# explain 명령어를 통해 정보를 얻을 수 있다!! 
+kubectl explain pods --recursive | less
+```
+
+
+
+
+
+
+
+
 
 
 
