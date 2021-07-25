@@ -1,11 +1,15 @@
-# techBlog
+# Blog
 기술에 관해 정리한 내용을 담은 레포지토리 입니다. 
 
-### 21.05.30 
+## Architecture
 
-쿠버네티스 학습 내용을 정리했습니다. 
+- [x] [Architecture](./Architecture) : 쿠버네티스 학습 내용을 정리했습니다.
 
-### 21.06.22
+## Python
 
-졸업작품 준비를 위한 ML 학습 내용을 정리했습니다.
+- [x] [Python](./Python) : Python 학습 내용을 정리했습니다.
+
+## ML
+
+- [x] [ML](./ML) : ML 학습 내용을 정리했습니다.
 
