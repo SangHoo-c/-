@@ -1,0 +1,236 @@
+## Application LifeCycle Management
+
+
+
+### Rolling Update & Rollback
+
+```yaml
+# checking history 
+kubectl rollout status <deployment-history>
+```
+
+
+
+- Recreate : application down 이 존재 
+- Rolling Update : default 
+
+
+
+~~~yaml
+kubectl apply -f new-deployment.yaml
+
+# 해당 경우 yaml 파일은 변경되지 않는다. 
+# 꼭, 추후에 변경 해줘야한다, 
+kubectl set image deployment/new-deployment nginx=nginx:1.9.1
+~~~
+
+
+
+```yaml
+# create
+kubectl create -f deployment-definition.yaml
+
+# Get 
+kubectl get deployments
+
+# Update 
+ kubectl apply –f deployment-definition.yaml
+ kubectl set image deployment/myapp-deployment nginx=nginx:1.9.1
+ 
+ # Status 
+ kubectl rollout status deployment/myapp-deployment
+ kubectl rollout history deployment/myapp-deployment
+ 
+ # Rollback
+ kubectl rollout undo deployment/myapp-deployment
+ 
+ # Edit
+ kubectl edit deployment frontend
+```
+
+
+
+
+
+```yaml
+# change deployment strategy 
+kubectl patch deployment/frontend --patch '{"spec":{"strategy":{"type":"Recreate"}}}'
+
+
+```
+
+
+
+### Configure Applications
+
+Configuring applications comprises of understanding the following concepts:
+
+- Configuring Command and Arguments on applications
+- Configuring Environment Variables
+- Configuring Secrets
+
+
+
+~~~dockerfile
+# ubuntu-sleeper
+FROM Ubuntu
+ENTRYPOINT ["sleep"]
+CMD ["5"]
+
+-------
+# pod-definition.yml
+# string value
+apiVersion: v1
+kind: Pod
+# key-value, dictionary, 
+metadata:
+  name: myapp-pod
+spec:
+  containers: # list/array
+    - name: ubuntu-sleeper 
+      image: ubuntu-sleeper
+      command:["sleep2.0"]
+      args:["10"]
+
+~~~
+
+
+
+### ENV variables in K8S
+
+```yaml
+# pod-definition.yml
+# string value
+apiVersion: v1
+kind: Pod
+# key-value, dictionary, 
+metadata:
+  name: myapp-pod
+spec:
+  containers: # list/array
+    - name: nginx-container # 1st item in list 
+      image: nginx 
+      
+      env:	# array, key-value
+        -  name: APP_COLOR
+        	 value: blue
+```
+
+
+
+1. Plain key-value
+
+~~~yaml
+      env:	# array, key-value
+        -  name: APP_COLOR
+        	 value: blue
+~~~
+
+### ConfigMap
+
+```yaml
+      env:	# array, key-value
+        -  name: APP_COLOR
+        	 valueFrom: 
+        	     configMapKeyRef:
+```
+
+
+
+- pod 밖으로 빼서 관리 
+- pod 생성시에 inject 한다. 
+
+```yaml
+# 명령형 선언 
+kubectl create configmap <config-name> --from-literal=<key>=<value>
+kubectl create configmap app-config --from-literal=APP_COLOR=blue
+kubectl create configmap webapp-config-map --from-literal=APP_COLOR=darkblue
+
+=
+
+# 명령형 선언 <파일에 저장>
+kubectl create configmap app-config --from-file=app_config.properties
+
+
+# declarative 
+kubectl create -f config-map.yaml
+```
+
+
+
+- create Config map 
+
+```yaml
+# config-map.yaml
+
+apiVersion: v1
+kind: ConfigMap
+# key-value, dictionary, 
+metadata:
+  name: app-config 
+data:
+  APP_COLOR: blue
+  APP_MODE: prod
+
+```
+
+
+
+- inject ConfigMap in Pods
+
+```yaml
+# pod-definition.yml
+apiVersion: v1
+kind: Pod
+# key-value, dictionary, 
+metadata:
+  name: myapp-pod
+spec:
+  containers: # list/array
+    - name: nginx-container # 1st item in list 
+      image: nginx 
+      
+      envFrom:	# array, key-value
+        -  configMapRef:
+        	   name: app-config
+```
+
+
+
+### Secrets 
+
+```yaml
+      env:	# array, key-value
+        -  name: APP_COLOR
+        	 valueFrom:
+        	     secretKeyRef:
+```
+
+
+
+* Tip : 현재 떠있는 pod 의 yaml 파일 가져오기 
+
+~~~yaml
+kubectl get pod <pod-name> - o yaml > pod.yaml
+~~~
+
+
+
+- create Secret 
+- inject in pod
+
+```yaml
+# 명령형 선언
+kubectl create secret generic app-secret --from-literal=DB_HOST=mysql
+kubectl create secret generic <secret-name> --from-literal=<key>=<value>
+kubectl create secret generic <secret-name> --from-file=<path-to-file>
+
+# base64 utility 를 사용하여 암호화 진행 
+echo -n 'mysql' | base64 
+
+kubectl get secret app-secret -o yaml
+
+# envFrom 정보 체크
+# explain 명령어를 통해 정보를 얻을 수 있다!! 
+kubectl explain pods --recursive | less
+```
