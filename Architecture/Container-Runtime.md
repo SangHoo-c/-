@@ -4,11 +4,6 @@
 
 
 
-### Thread Safe 란?
-
-
-
-
 
 ### Kernel 
 
