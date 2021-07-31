@@ -59,7 +59,7 @@ print(fac(4))
 
 
 ```python 
-# 재귀 :  factorial 구현
+# 반복문 :  factorial 구현
 def fac(n):
     result = 1
     while n > 0:
