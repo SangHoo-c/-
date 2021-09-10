@@ -49,3 +49,41 @@ name | number
 #### 클로즈해싱
 
 해시 중복이 발생하면 해당 해시 값부터 순차적으로 빈 공간을 찾기 시작한다. 가장 처음 찾는 빈 공간에 키와 밸류를 저장한다. 
+
+
+```python
+
+hash_table = [[] for _ in range(10)]
+hash_table_2 = [[] for _ in range(10)]
+
+
+def hash_func(a):
+    return a % 8
+
+
+# index , value
+data = [
+    [11, "lee"],
+    [4, "park"],
+    [1, "jung"],
+    [1, "chu"]
+]
+
+# chaining 기법
+for d in data:
+    hash_table[hash_func(d[0])].append(d[1])  # collision !
+
+# Linear probing 기법
+for d in data:
+    key = hash_func(d[0])
+    init_key = key
+    while hash_table_2[key]:
+        key = (key + 1 + 8) % 8
+        if key == init_key:
+            break
+    hash_table_2[key].append(d[1])
+
+
+print(hash_table)
+print(hash_table_2)
+
