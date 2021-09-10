@@ -20,6 +20,8 @@ def binary_search(arr, target):
             left = mid + 1
         else:
             pass
+    print("no target !!!!")
+
 
 
 def binary_search_rec(data, target, left, right, cnt):
@@ -27,7 +29,8 @@ def binary_search_rec(data, target, left, right, cnt):
         data = copy.deepcopy(data)
         data.sort()
     if left > right:
-        return
+        print("no target !! ")
+        return None
     mid = (left + right) // 2
     if data[mid] == target:
         print("find !!")
@@ -42,5 +45,5 @@ def binary_search_rec(data, target, left, right, cnt):
     return binary_search_rec(data, target, left, right, cnt + 1)
 
 
-binary_search(a, 3)
-binary_search_rec(a, 3, 0, len(a) - 1, 0)
+binary_search(a, 5)
+binary_search_rec(a, 5, 0, len(a) - 1, 0)
