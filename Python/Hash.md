@@ -87,3 +87,9 @@ for d in data:
 print(hash_table)
 print(hash_table_2)
 
+
+[output]
+----------------
+[[], ['jung', 'chu'], [], ['lee'], ['park'], [], [], [], [], []]
+[[], ['jung'], ['chu'], ['lee'], ['park'], [], [], [], [], []]
+
