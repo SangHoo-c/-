@@ -1,0 +1,240 @@
+## week3
+
+MakeFile
+
+Simplify compiling source codes
+
+```bash
+gcc -o test main.c test.c hello.c 
+
+vs
+
+make
+```
+
+```bash
+target ... : prerequisities ..
+    recipe 
+
+# target : name of file / name of an action
+# prerequisite : input 
+# recipe : linux command
+```
+
+```bash
+# Makefile
+$ make 
+
+hello: main.o hello.o
+		gcc -W2 -o hello main.o hello.o
+main.o: main.c
+		gcc -W2 -c main.c
+hello.o: hello.c
+		gcc -W2 -c hello.c
+clean:
+		rm *.o hello
+		
+$ make clean
+```
+
+
+
+```bash
+TARGET=test
+CXX=gcc
+OBJECTS=plus.o minus.o main.o
+$(TARGET): $(OBJECTS)
+		$(CXX) -o $(TARGET) $(OBJECTS)
+main.o: main.c
+	$(CXX) -c main.c 		
+plus.o: plus.c
+	$(CXX) -c plus.c
+minus.o: minus.c
+	$(CXX) -c minus.c
+clean:
+	rm $(OBJECTS) $(TARGET)
+```
+
+```shell
+echo -e 
+```
+
+
+
+
+
+```bash
+# compiler 바꿀때, gcc 외에 다른 컴파일러를 사용할때 편리함. 
+# Makefile
+TARGET=hello
+CXX=gcc
+CXXFLAGS=-W2	# warning message by level 2 
+OBJECTS=main.o hello.o
+$(TARGET): $(OBJECTS)
+		$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS)
+main.o: main.c
+		$(CXX) $(CXXFLAGS) -c main.c
+hello.o: hello.c
+		$(CXX) $(CXXFLAGS) -c hello.c
+clean:
+		rm $(OBJECTS) $(TARGET)
+```
+
+```bash
+# 이렇게도 대체 가능 
+$(TARGET): $(OBJECTS)
+		$(CXX) $(CXXFLAGS) -o $@ $^
+main.o: main.c
+		$(CXX) $(CXXFLAGS) -c $^
+hello.o: hello.c
+		$(CXX) $(CXXFLAGS) -c $^
+```
+
+
+
+**shell programming**
+
+```shell
+read varname [more vars]
+
+#! /bin/sh
+read -p "enter your name: " first last
+
+echo "First name : $first"
+echo "Last name : $last"
+```
+
+
+
+```shell
+			$1.  $2.  $3.  $4. 
+$ set tim bill ann fred
+
+$echo $*
+tim bill ann fred
+
+$ echo $#
+4
+
+$ echo $1 $2
+tim bill
+```
+
+
+
+```shell
+# 0 is success. 
+
+if command
+then
+	statements
+fi
+```
+
+
+
+```shell
+# 0 => true
+$ test [expression]
+
+# if file exist, return echo
+if test -w "$1"
+	then
+	echo "file $1 is write-able"
+fi
+
+# ----------------
+if [condition]; then
+	s1
+elif []; then
+	s2
+else
+	s3
+fi
+# ----------------
+
+-w FILE : file exists, wirte permission is granted
+-x FILE : file exists, execute permission is granted
+...
+
+-gt : >
+-ge : >=
+-eq : ==
+-ne : !=
+str1 is less than str2 : str1 \< str2
+...
+
+[ tst expr 1 ] && [test expr 2]
+...
+```
+
+
+
+```shell
+#! /bin/bash
+
+COUNTER=0
+while [ $COUNTER -lt 10 ]
+do
+		echo The counter is $COUNTER
+		let COUNTER = $COUNTER+1
+done
+```
+
+```shell
+#! /bin/bash
+
+make
+
+if [ -x "test.out"]
+then
+	echo "hi"
+	echo $1 $2
+else
+	echo "why!"
+fi
+make clean
+
+exit 0
+```
+
+
+
+```bash
+#! /bin/bash
+
+for i in 1 2 3 4 5 6 7
+do 
+		read -p "Enter temp for day $num: " Temp
+		let TempTotal=$TempTotal+$Temp
+done
+
+let AvgTemp=$TempTotal/7
+echo "Average temperature: " $AvgTemp
+```
+
+
+
+Tips!
+
+- echo
+- #! /bin/bash -xv : 사용하기 
+
+
+
+```bash
+#! /bin/bash
+
+make
+
+echo 33 11 > answer.txt
+echo $1 $2 | ./test.out > output.txt
+diff -u answer.txt output.txt > result.txt
+
+make clean
+
+exit 0
+```
+
+
+
