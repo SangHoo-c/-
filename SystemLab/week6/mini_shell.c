@@ -28,7 +28,7 @@ int main(int argc, char* argv[]){
             // printf("hi this is child \n");
             // printf("(%lu) %s\n", size, cmd);
 
-            char * args[] = {};
+            char * args[100] = {};
             int i = 0;
             char *ptr= strtok(cmd, " ");
             while (ptr!= NULL) {
