@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include <unistd.h> // open, read, lseek
 #include <fcntl.h>  //  option
 #include <errno.h>  // variable errno
@@ -10,7 +8,6 @@
 #define ESIZE 16
 #define S_SIZE 45
 
-
 int _strlen(char*s);
 void _strcopy(char*to, char*from);
 void _memset(char * s, int fill);
@@ -18,21 +15,21 @@ int _strcmp(char *s1, char *s2);
 char * _substr(int s, int e, char * str);
 char * _strtok(char * str, const char * delim);
 void _split(char * buf);
-void func1(char * user_buf);
-void func2(char * user_buf);
-void func3(char * user_buf);
+
+void func1(char ** user_inputs);
+void func2(char ** user_inputs);
+void func3(char * c_str);
 void func4(char * user_buf);
 
 
-void tmp_func2(char ** user_inputs);
 typedef struct{
     char str[45];
     int l_num;
     int c_num;
 }Word;
 
-Word word[BSIZE];
-int widx = 0;
+Word word[BSIZE];   /// input buf 에 모든 단어 저장
+int widx = 0;   /// _split 에서 사용
 
 int main(int argc, char * argv[]){
     int fd = 0;
@@ -68,6 +65,7 @@ int main(int argc, char * argv[]){
         for (int i = 0; i < str_len; ++i) {
             c_str[i] = user_buf[i];
         }
+        c_str[str_len-1] = '\0';    /// 개행문자 null 로 대체
 
         /// user buffer 체크
         /// user_buf 를 " " 기준으로 split 한후, ui 에 저장
@@ -94,8 +92,9 @@ int main(int argc, char * argv[]){
         /// func 3
         if (user_inputs[0][0] == '"'){
             int wlen = _strlen(user_inputs[word_count-1]);
-            if (user_inputs[word_count-1][wlen-2] == '"')
-                quata_ck = 1;
+            quata_ck++;
+            if (user_inputs[word_count-1][wlen-1] == '"')
+                quata_ck++;
         }
 
         /// func 4
@@ -103,59 +102,23 @@ int main(int argc, char * argv[]){
             if (_strcmp(user_inputs[1], "*") == 0)
                 aster_ck = 1;
 
-        if (quata_ck){
-            func3(user_buf);
-        }
-        else if (aster_ck) func4(user_buf);
-        else if (word_count == 1) func1(user_buf);
+        if (quata_ck == 2)
+            func3(c_str);
+        else if (aster_ck) func4(c_str);
+        else if (word_count == 1) func1(user_inputs);
         else if (word_count > 1){
-            printf("@@ 2 ");
-//            func2(user_buf);
-            tmp_func2(user_inputs);
-        }
-        else write(STDOUT_FILENO, error, ESIZE);
-        return 1;
-
-
-        for (int i = 0; i < BSIZE; ++i) {
-            if (!user_inputs[i]) break;
-            if (_strlen(user_inputs[i]) >= 1){
-                printf("%d %s \n", i, user_inputs[i]);
+            if (quata_ck == 1){
+                if (quata_ck == 1) write(STDOUT_FILENO, error, ESIZE);
+            }
+            else{
+                func2(user_inputs);
             }
         }
-
-        if (word_count == 1) func1(user_buf);
-
-
-
-
-//        int space_cnt = 0;
-//        int aster_ck = 0;
-//        int quate_ck = 0;
-//
-//        for (int i = 0; i < BSIZE; ++i) {
-//            if(user_buf[i] == '\n') break;
-//            else if(user_buf[i] == ' ') space_cnt ++;
-//            else if(user_buf[i] == '*') aster_ck = 1;
-//            else if(user_buf[i] =='"') quate_ck += 1;
-//        }
-//
-//        if(space_cnt == 0) printf("func1 \n");
-//        else if(aster_ck == 1) printf("func4 \n");
-//        else if(quate_ck == 2) printf("func3 \n");
-//        else if(space_cnt > 0 && quate_ck < 2) printf("func2 \n");
-//        else printf("wrong input \n");
-
-
-//        func1(user_buf);
-//        func2(user_buf);
-//        func3(user_buf);
-//        func4(user_buf);
+        else write(STDOUT_FILENO, error, ESIZE);
 
         close(fd);
         free(c_str);
     }
-
     return 0;
 }
 
@@ -198,24 +161,18 @@ char * _substr(int s, int e, char * str){
     return new;
 }
 
-char * _strtok(char * str, const char * delim){
+char * _strtok(char * str, const char * delim){ /// 개행문자 또는 delim 을 만나면 자른다.
     static char * p_cur;
-    char * p_delim;
-
     if( str != NULL) p_cur = str;
     else str = p_cur;
 
     if (*p_cur == NULL) return NULL;
 
     while (*p_cur){
-        p_delim = (char*) delim;
-        while (*p_delim){
-            if (*p_cur == *p_delim){    /// delim 과 같다면, 자른다.
-                *p_cur = NULL;
-                ++p_cur;
-                return str;             /// 자른 결과 반환
-            }
-            ++p_delim;      /// delim 을 끝까지 돌려본다.
+        if (*p_cur == *delim || *p_cur == '\n'){    /// delim 과 같다면, 자른다.
+            *p_cur = NULL;
+            ++p_cur;
+            return str;             /// 자른 결과 반환
         }
         ++p_cur;        /// delim 과 같지 않다면, 다음으로 넘어간다.
     }
@@ -289,26 +246,11 @@ int _itoa(int n, char * s, int idx){
     return idx;
 }
 
-void func1(char * user_buf){
-    int str_len = 0;
-    char * c_str;
-
-    /// 입력 받은 문자열 처리
-    for (int i = 0; i < BSIZE; ++i) {
-        if(user_buf[i] == '\n') break;
-        str_len += 1;
-    }
-
-    c_str = (char *)malloc(str_len+1);
-    for (int i = 0; i < str_len; ++i) {
-        c_str[i] = user_buf[i];
-    }
-
-
+void func1(char ** user_inputs){
     /// 텍스트 전체 순회
     for (int i = 0; i < BSIZE; ++i) {
         if (!word[i].c_num) break;
-        if (_strcmp(c_str, word[i].str) == 0){
+        if (_strcmp(user_inputs[0], word[i].str) == 0){
             /// printf("%d %d %s \n", word[i].l_num, word[i].c_num, word[i].str);
             char ar[45] = {};
             int gix = 0;
@@ -320,63 +262,31 @@ void func1(char * user_buf){
             write(STDOUT_FILENO, ar, _strlen(ar));
         }
     }
-    free(c_str);
 }
 
-void tmp_func2(char ** user_inputs){
+void func2(char ** user_inputs){
+    int prev_lnum = 0;
+    int check[BSIZE] = {0, };
+    int word_cnt = 0;   /// user input 갯수
     for (int i = 0; i < BSIZE; ++i) {
         if (!user_inputs[i]) break;
-        printf("%s \n", user_inputs[i]);
+        word_cnt ++;
     }
-}
-void t_func2(char * user_buf){
-    char c_str[45] = {0};
-    int idx = 0;
-    int check[BSIZE] = {0, };
-    int word_cnt = 0;
-    int prev_lnum = 0;      /// 중복제거를 위한 flag
-    for (int i = 0; i < BSIZE; ++i) {
-        printf("%d \n", i);
-        if (user_buf[i] == '\n'){
-            printf("hi user -buf : %s\n", c_str);
-            if (_strlen(c_str) > 0){
-                printf("$$$ %d  %s\n", _strlen(c_str), c_str);
-                word_cnt ++;
-            }
-            for (int j = 0; j < BSIZE; ++j) {
-                if (!word[j].c_num) break;
-                if (_strcmp(c_str, word[j].str) == 0){
-                    if (word[j].l_num != prev_lnum){
-                        check[word[j].l_num] ++;
-                        prev_lnum = word[j].l_num;
-                    }
+
+    /// user input 에 있는 문자 한개씩 참조하여
+    /// word 배열 확인
+    for (int i = 0; i < word_cnt; ++i) {
+        for (int j = 0; j < BSIZE; ++j) {
+            if (!word[j].c_num) break;
+            if (_strcmp(user_inputs[i], word[j].str) == 0){
+                if (word[j].l_num != prev_lnum){
+                    check[word[j].l_num] ++;
+                    prev_lnum = word[j].l_num;
                 }
             }
-            break;
-        }
-        else if(user_buf[i] == ' '){
-            if (_strlen(c_str) > 0){
-                printf("$$$ %d  %s\n", _strlen(c_str), c_str);
-                word_cnt ++;        /// 공백제거 counting
-            }
-            for (int j = 0; j < BSIZE; ++j) {
-                if (!word[j].c_num) break;              /// word 안에 아무것도 없으면 break
-                if (_strcmp(c_str, word[j].str) == 0){
-                    if (word[j].l_num != prev_lnum){
-                        check[word[j].l_num] ++;
-                        prev_lnum = word[j].l_num;
-                    }
-                }
-            }
-            _memset(c_str, 0);
-            printf("after memset : %s \n", c_str);
-            idx = 0;
-        }
-        else{
-            c_str[idx++] = user_buf[i];
         }
     }
-    printf("!!!@@@ %d \n", word_cnt);
+
     for (int i = 0; i < BSIZE; ++i) {
         if(check[i] == word_cnt){
             /// printf("%d \n", i);
@@ -390,25 +300,16 @@ void t_func2(char * user_buf){
     }
 }
 
-void func3(char * user_buf){
+void func3(char * c_str){
     int str_len = 0;
-    char * c_str;
     char * n_str;
 
-    /// 입력 받은 문자열 처리
-    for (int i = 0; i < BSIZE; ++i) {
-        if(user_buf[i] == '\n') break;
-        str_len += 1;
-    }
+    str_len = _strlen(c_str);
+    /// 인용표 제거. "Lorem Ipsum" => Lorem Ipsum
+    n_str = _substr(1, str_len-2, c_str);
 
-    c_str = (char *)malloc(str_len+1);
-    for (int i = 0; i < str_len; ++i) {
-        c_str[i] = user_buf[i];
-    }
-
-    /// 문자열 split 한후, tmp_buf 에 저장
-    /// "Lorem Ipsum" ==> tmp_buf = {"Lorem", "Ipsum"}
-    n_str = _substr(1, str_len-2, c_str);       /// "Lorem Ipsum" => Lorem Ipsum
+    /// delim 을 기준으로 쪼개서 tmp_buf 에 저장
+    /// char ** tmp_buf = { "Lorem", "Ipsum"}
     char * tmp = _strtok(n_str, " ");
     char * tmp_buf[BSIZE] = {};
     int tmp_len = 0;
@@ -441,25 +342,10 @@ void func3(char * user_buf){
             write(STDOUT_FILENO, ar, _strlen(ar));
         }
     }
-    free(c_str);
     free(n_str);
 }
 
-void func4(char * user_buf){
-    int str_len = 0;
-    char * c_str;
-
-    /// 입력 받은 문자열 처리
-    for (int i = 0; i < BSIZE; ++i) {
-        if(user_buf[i] == '\n') break;
-        str_len += 1;
-    }
-
-    c_str = (char *)malloc(str_len+1);
-    for (int i = 0; i < str_len; ++i) {
-        c_str[i] = user_buf[i];
-    }
-
+void func4(char * c_str){
     /// 문자열 split 한후, tmp_buf 에 저장
     char * tmp = _strtok(c_str, " ");
     char * tmp_buf[BSIZE] = {};
@@ -468,6 +354,7 @@ void func4(char * user_buf){
         tmp_buf[tmp_len++] = tmp;
         tmp = _strtok(NULL, " ");
     }
+
 
     for (int i = 0; i < BSIZE; ++i) {
         if (!word[i].c_num) break;
@@ -497,6 +384,5 @@ void func4(char * user_buf){
             write(STDOUT_FILENO, ar, _strlen(ar));
         }
     }
-    free(c_str);
 }
 
