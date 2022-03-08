@@ -1,7 +1,34 @@
 # To-Do
+
+## 목적 
+
 - series 와 DataFrame 초기화 과정 코드 분석 
 
+```python
+# 분석한 코드 
+# pandas/_typing.py
+# pandas/_config/config.py
+# pandas/core/frame.py
+# pandas/core/internal/construction.py
+```
+
+## 방법 
+
+- DataFrame 이 선언될때, 실행되는 코드를 찾아보자.
+- create_DataFrame_by_Series_test.py 를 실행시키고, tracing 해보았다.
+
 <br/>
+<br/>
+
+## 목차 
+
+1. series 구현체
+2. **__init__** Series & DataFrame. ( 1-a ) 
+3. Manager  ( 1-b, 1-c )
+
+<br/>
+<br/>
+
 
 ## series 구현체
 
@@ -71,9 +98,13 @@ Internally, the values are stored as blocks of the same type. Each column, or co
 
 And this indeed implies that appending a row is more expensive. In general, appending multiple single rows is not a good idea: better to eg preallocate an empty dataframe to fill, or put the new rows/columns in a list and concat them all at once.
 
+<br/>
+
 - DataFrame 이 선언될때, 실행되는 코드를 찾아보자.
+- create_DataFrame_by_Series_test.py 를 실행시키고, tracing 해보았다. 
 
 
+<br/>
 <br/>
 
 ```python
