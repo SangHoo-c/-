@@ -102,10 +102,18 @@ def _get_axis_number(cls, axis: Axis) -> int:
 def validate_ascending(
     ascending: bool | int | Sequence[bool | int] = True,
 ):
+    """Validate ``ascending`` kwargs for ``sort_index`` method."""
+    kwargs = {"none_allowed": False, "int_allowed": True}
+    if not isinstance(ascending, (list, tuple)):
+        return validate_bool_kwarg(ascending, "ascending", **kwargs)
+
+    return [validate_bool_kwarg(item, "ascending", **kwargs) for item in ascending]
 ```
 
-...
+- `validate_bool_kwarg` 호출
+    - 1-a 의 함수와 같다.
+- `ascending = validate_ascending(ascending)` 을 통해, boolean 값이 맞게 들어왔는지 체크
 
 <br/>
 
-# TBC
+# 2 편에서 이어집니다. 
